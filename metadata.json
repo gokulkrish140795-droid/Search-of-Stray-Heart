@@ -1,0 +1,6 @@
+{
+  "name": "Project AR: The Search for a Stray Heart",
+  "description": "Aishwarya’s 30th Birthday Scrapbook Quest - Private Living Glass AR Scavenger Hunt",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
