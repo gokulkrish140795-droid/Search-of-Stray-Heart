@@ -13,6 +13,7 @@ import {
   ArrowLeft,
   Volume2,
   VolumeX,
+  Heart,
 } from 'lucide-react';
 import { CardItem, CHAPTER_CONFIG } from '../data/huntData';
 import { sound } from '../utils/sound';
@@ -24,17 +25,21 @@ import {
 interface ScreenHuntStepProps {
   card: CardItem;
   collectedLetters: string[];
+  foundCardIds: string[];
   onCardFound: (card: CardItem) => void;
   onBack: () => void;
   onOpenRehearsal: () => void;
+  onOpenScrapbook: () => void;
 }
 
 export const ScreenHuntStep: React.FC<ScreenHuntStepProps> = ({
   card,
   collectedLetters,
+  foundCardIds,
   onCardFound,
   onBack,
   onOpenRehearsal,
+  onOpenScrapbook,
 }) => {
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
@@ -347,6 +352,15 @@ export const ScreenHuntStep: React.FC<ScreenHuntStepProps> = ({
           >
             <BookOpen size={13} />
             <span>Clue</span>
+          </button>
+
+          <button
+            onClick={onOpenScrapbook}
+            className="px-2 py-1 rounded-full bg-[#0B1220]/85 border border-[#FF6B8A]/40 text-[#FFE7A8] text-[11px] font-serif hover:bg-[#FF6B8A]/20 transition flex items-center gap-1"
+            title="Aishwarya's Memory Scrapbook"
+          >
+            <Heart size={12} className="text-[#FF6B8A] fill-[#FF6B8A]/50" />
+            <span className="text-[10px] font-mono font-bold">{foundCardIds.length}</span>
           </button>
 
           <button

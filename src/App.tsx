@@ -7,6 +7,7 @@ import { ScreenHuntStep } from './components/ScreenHuntStep';
 import { ScreenVault } from './components/ScreenVault';
 import { ScreenFinale } from './components/ScreenFinale';
 import { RehearsalModal } from './components/RehearsalModal';
+import { ScrapbookModal } from './components/ScrapbookModal';
 import { HUNT_CARDS, HUNT_VAULTS, CardItem, CHAPTER_CONFIG } from './data/huntData';
 import { sound } from './utils/sound';
 
@@ -65,6 +66,7 @@ export default function App() {
   });
 
   const [showRehearsal, setShowRehearsal] = useState(false);
+  const [showScrapbook, setShowScrapbook] = useState(false);
 
   // Strict invariant: foundCardIds must never contain cards for currentStep or future steps.
   // Any stale cards from rehearsal jumps or future steps are stripped immediately.
@@ -274,9 +276,11 @@ export default function App() {
         <ScreenHuntStep
           card={currentCard}
           collectedLetters={collectedTokens}
+          foundCardIds={foundCardIds}
           onCardFound={handleCardFound}
           onBack={handleBackNavigation}
           onOpenRehearsal={() => setShowRehearsal(true)}
+          onOpenScrapbook={() => setShowScrapbook(true)}
         />
         {showRehearsal && (
           <RehearsalModal
@@ -285,6 +289,12 @@ export default function App() {
             onClose={() => setShowRehearsal(false)}
           />
         )}
+        <ScrapbookModal
+          foundCardIds={foundCardIds}
+          currentStep={currentStep}
+          isOpen={showScrapbook}
+          onClose={() => setShowScrapbook(false)}
+        />
       </div>
     );
   }
@@ -307,6 +317,8 @@ export default function App() {
       onBack={handleBackNavigation}
       accentColor={activeAccent}
       onOpenRehearsal={() => setShowRehearsal(true)}
+      onOpenScrapbook={() => setShowScrapbook(true)}
+      foundCount={foundCardIds.length}
     >
       {/* View Router */}
       {gameState === 'gateway' && <ScreenGateway onAccept={handleAcceptGateway} />}
@@ -329,6 +341,7 @@ export default function App() {
             setCurrentStep(1);
             setGameState('gateway');
           }}
+          onOpenScrapbook={() => setShowScrapbook(true)}
         />
       )}
 
@@ -351,6 +364,14 @@ export default function App() {
           onClose={() => setShowRehearsal(false)}
         />
       )}
+
+      {/* Living Glass Memory Scrapbook Modal */}
+      <ScrapbookModal
+        foundCardIds={foundCardIds}
+        currentStep={currentStep}
+        isOpen={showScrapbook}
+        onClose={() => setShowScrapbook(false)}
+      />
     </DeviceFrame>
   );
 }

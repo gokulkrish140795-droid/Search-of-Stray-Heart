@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Sparkles, Heart } from 'lucide-react';
+import { Sparkles, Heart, BookOpen, RotateCcw } from 'lucide-react';
 import { FINALE_PROTOCOL } from '../data/huntData';
 import { sound } from '../utils/sound';
 
 interface ScreenFinaleProps {
   onRestart: () => void;
+  onOpenScrapbook: () => void;
 }
 
-export const ScreenFinale: React.FC<ScreenFinaleProps> = ({ onRestart }) => {
+export const ScreenFinale: React.FC<ScreenFinaleProps> = ({ onRestart, onOpenScrapbook }) => {
   const [digits, setDigits] = useState(['', '', '', '']);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [fadeStage, setFadeStage] = useState(0); // 0: input, 1: dimming, 2: look up
@@ -36,7 +37,7 @@ export const ScreenFinale: React.FC<ScreenFinaleProps> = ({ onRestart }) => {
 
         // Sequence Phone Dim / Room Rise + Glass Soft-Off
         setTimeout(() => setFadeStage(1), 1500);
-        setTimeout(() => setFadeStage(2), 3500);
+        setTimeout(() => setFadeStage(2), 3200);
       } else {
         sound.playVoice('voice_no_nice_try');
       }
@@ -48,7 +49,7 @@ export const ScreenFinale: React.FC<ScreenFinaleProps> = ({ onRestart }) => {
       {/* Stage 0 / 1: Final Protocol Entry */}
       {fadeStage < 2 ? (
         <div className="flex-1 flex flex-col items-center justify-center text-center p-4">
-          <div className="w-full max-w-sm p-6 rounded-2xl bg-[#0B1220]/85 border border-[#FF6B8A]/40 backdrop-blur-xl shadow-2xl">
+          <div className="w-full max-w-sm p-6 rounded-3xl bg-[#0B1220]/90 border border-[#FF6B8A]/40 backdrop-blur-xl shadow-2xl animate-fadeIn">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FF6B8A]/15 border border-[#FF6B8A]/40 text-[#FFE7A8] text-xs font-serif uppercase tracking-widest font-semibold mb-3">
               <Sparkles size={14} className="text-[#FF6B8A]" />
               <span>Final Grand Lock</span>
@@ -74,15 +75,24 @@ export const ScreenFinale: React.FC<ScreenFinaleProps> = ({ onRestart }) => {
                   maxLength={1}
                   value={digits[idx]}
                   onChange={(e) => handleDigitChange(idx, e.target.value)}
-                  className="w-12 h-14 rounded-xl bg-black/70 border-2 border-[#E8C56A] text-2xl font-mono font-bold text-center text-[#FFE7A8] focus:outline-none focus:border-[#FF6B8A] shadow-md"
+                  className="w-12 h-14 rounded-2xl bg-black/70 border-2 border-[#E8C56A] text-2xl font-mono font-bold text-center text-[#FFE7A8] focus:outline-none focus:border-[#FF6B8A] shadow-md transition-colors"
                 />
               ))}
             </div>
 
-            {isUnlocked && (
+            {isUnlocked ? (
               <p className="text-xs font-serif text-[#FF6B8A] animate-pulse">
-                Protocol Accepted. Releasing digital reliquary magic...
+                ✨ Protocol Accepted. Releasing Living Glass reliquary magic...
               </p>
+            ) : (
+              <button
+                type="button"
+                onClick={onOpenScrapbook}
+                className="text-[11px] font-serif text-[#E8C56A] hover:underline flex items-center justify-center gap-1 mx-auto"
+              >
+                <BookOpen size={12} />
+                <span>Review Memory Scrapbook</span>
+              </button>
             )}
           </div>
         </div>
@@ -90,28 +100,40 @@ export const ScreenFinale: React.FC<ScreenFinaleProps> = ({ onRestart }) => {
         /* Stage 2: Phone Dim / Room Rise + Look Up Finale */
         <div className="fixed inset-0 z-50 bg-[#060B14] flex flex-col items-center justify-center text-center p-6 animate-fadeIn">
           {/* Subtle soft gold heart glow */}
-          <div className="w-24 h-24 rounded-full bg-[#E8C56A]/10 border border-[#E8C56A]/30 flex items-center justify-center mb-6 animate-pulse">
-            <Heart size={40} className="text-[#FF6B8A] fill-[#FF6B8A]/80" />
+          <div className="w-24 h-24 rounded-full bg-[#E8C56A]/10 border border-[#E8C56A]/30 flex items-center justify-center mb-6 animate-pulse shadow-[0_0_40px_rgba(255,107,138,0.3)]">
+            <Heart size={44} className="text-[#FF6B8A] fill-[#FF6B8A]/80" />
           </div>
 
           <h1 className="text-4xl sm:text-5xl font-serif font-bold text-[#FFE7A8] tracking-widest uppercase mb-4 animate-fadeIn">
             {FINALE_PROTOCOL.finalCaption}
           </h1>
 
-          <p className="text-sm font-serif italic text-slate-300 max-w-xs leading-relaxed mb-8">
+          <p className="text-base font-serif italic text-slate-300 max-w-xs leading-relaxed mb-6">
             The quest is complete. The stray heart was never in the phone...
           </p>
 
-          <div className="p-4 rounded-2xl bg-[#0B1220]/70 border border-[#E8C56A]/20 text-xs font-serif text-[#E8C56A] max-w-xs">
+          <div className="p-4 rounded-2xl bg-[#0B1220]/80 border border-[#E8C56A]/30 text-sm font-serif text-[#FFE7A8] max-w-xs shadow-lg mb-8">
             ✨ {FINALE_PROTOCOL.gokulGiftNote} ✨
           </div>
 
-          <button
-            onClick={onRestart}
-            className="mt-12 text-xs font-serif uppercase tracking-widest text-slate-500 hover:text-slate-300 underline"
-          >
-            Replay Quest From Beginning
-          </button>
+          {/* Action buttons */}
+          <div className="flex flex-col gap-3 w-full max-w-xs">
+            <button
+              onClick={onOpenScrapbook}
+              className="w-full py-3 rounded-xl font-serif text-xs uppercase tracking-wider font-bold text-[#060B14] bg-gradient-to-r from-[#E8C56A] via-[#FFE7A8] to-[#E8C56A] shadow-lg flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition"
+            >
+              <BookOpen size={15} />
+              <span>Explore Living Glass Scrapbook</span>
+            </button>
+
+            <button
+              onClick={onRestart}
+              className="py-2.5 text-xs font-serif uppercase tracking-widest text-slate-400 hover:text-slate-200 flex items-center justify-center gap-1.5 transition"
+            >
+              <RotateCcw size={13} />
+              <span>Replay Quest From Beginning</span>
+            </button>
+          </div>
         </div>
       )}
     </div>
