@@ -72,7 +72,26 @@ export const ScreenHuntStep: React.FC<ScreenHuntStepProps> = ({
     // Automatically attempt camera activation on card transition
     startCamera();
 
+    // Listen for 8th Wall Target Detection messages from WebAR runtime
+    const handleScannerMessage = (event: MessageEvent) => {
+      if (!event.data || event.data.source !== '8thwall-scanner') return;
+      if (event.data.type === 'targetFound' && event.data.data?.name) {
+        const targetName = String(event.data.data.name);
+        const cardId = targetName.replace('card-', '').padStart(2, '0');
+        if (cardId === card.id) {
+          triggerSuccessfulScan(`8th Wall Target ${targetName} (${card.letters})`);
+        } else {
+          sound.playSfx('sfx_snitch_wings');
+          setRegistryToast(`8th Wall Recognized Card #${cardId}! Active clue is Card #${card.id}.`);
+          setTimeout(() => setRegistryToast(null), 4000);
+        }
+      }
+    };
+
+    window.addEventListener('message', handleScannerMessage);
+
     return () => {
+      window.removeEventListener('message', handleScannerMessage);
       stopCameraAndTracking();
     };
   }, [card.id]);

@@ -1,0 +1,126 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+  <title>8th Wall WebAR Scanner</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+    #canvas-container { position: absolute; inset: 0; width: 100%; height: 100%; }
+    canvas { width: 100% !important; height: 100% !important; object-fit: cover; }
+    #status-pill {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(11, 18, 32, 0.85);
+      border: 1px solid rgba(232, 197, 106, 0.5);
+      color: #FFE7A8;
+      font-family: serif;
+      font-size: 11px;
+      padding: 5px 14px;
+      border-radius: 9999px;
+      pointer-events: none;
+      z-index: 100;
+      white-space: nowrap;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+      letter-spacing: 0.05em;
+    }
+  </style>
+  <script crossorigin="anonymous" src="./external/runtime/runtime.js"></script>
+  <script crossorigin="anonymous" src="./external/xr/xr.js" async="true" data-preload-chunks="slam"></script>
+</head>
+<body>
+  <div id="status-pill">✨ Initializing 8th Wall AR...</div>
+  <div id="canvas-container"></div>
+
+  <script>
+    const statusPill = document.getElementById('status-pill');
+
+    function notifyParent(type, data) {
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ source: '8thwall-scanner', type, data }, '*');
+      }
+    }
+
+    function setStatus(text) {
+      if (statusPill) statusPill.innerText = text;
+      notifyParent('status', text);
+    }
+
+    let lastDetected = '';
+    let lastDetectedTime = 0;
+
+    // Custom 8th Wall Camera Pipeline Module
+    const targetScannerPipelineModule = () => ({
+      name: 'project-ar-scanner',
+      onStart: () => {
+        setStatus('🔍 8th Wall Active • Point at Clue Card');
+      },
+      onCameraStatusChange: ({ status }) => {
+        if (status === 'hasStream') {
+          setStatus('📷 Camera ready • Scanning for cards...');
+        }
+      },
+      listeners: [
+        {
+          event: 'reality.imagefound',
+          process: ({ detail }) => {
+            const targetName = detail && detail.name;
+            const now = Date.now();
+            if (targetName && (targetName !== lastDetected || now - lastDetectedTime > 3000)) {
+              lastDetected = targetName;
+              lastDetectedTime = now;
+              setStatus(`✨ Target Found: ${targetName}`);
+              notifyParent('targetFound', { name: targetName });
+            }
+          },
+        },
+        {
+          event: 'reality.imagescanning',
+          process: () => {
+            // Actively tracking
+          },
+        },
+        {
+          event: 'reality.imagelost',
+          process: ({ detail }) => {
+            notifyParent('targetLost', { name: detail && detail.name });
+          },
+        },
+      ],
+    });
+
+    window.addEventListener('load', () => {
+      let attempts = 0;
+      const checkXR8 = setInterval(() => {
+        attempts++;
+        if (window.XR8) {
+          clearInterval(checkXR8);
+          try {
+            window.XR8.addCameraPipelineModules([
+              window.XR8.GlTextureRenderer.pipelineModule(),
+              window.XR8.Camera.pipelineModule(),
+              window.XR8.XrController.pipelineModule(),
+              targetScannerPipelineModule(),
+            ]);
+
+            const canvas = document.createElement('canvas');
+            canvas.id = 'camerafeed';
+            document.getElementById('canvas-container').appendChild(canvas);
+
+            window.XR8.run({ canvas });
+          } catch (e) {
+            console.warn('XR8 setup notice:', e);
+            setStatus('Ready (Tap manual code if needed)');
+          }
+        } else if (attempts > 30) {
+          clearInterval(checkXR8);
+          setStatus('Ready (Use manual code entry)');
+        }
+      }, 100);
+    });
+  </script>
+</body>
+</html>

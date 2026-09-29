@@ -52788,7 +52788,7 @@ class Q5 {
   }
   _compileAndRun(t, e) {
     const s = ps().compileAndRun(t, e);
-    return Ot().makeTensorFromDataId(s.dataId, s.shape, s.dtype);
+    return (s && s.dataId) ? Ot().makeTensorFromDataId(s.dataId, s.shape, s.dtype || "float32") : null;
   }
 }
 const tl = [
@@ -53825,11 +53825,11 @@ class vC {
    */
   _compileAndRun(t, e) {
     const s = ps().compileAndRun(t, e);
-    return Ot().makeTensorFromDataId(s.dataId, s.shape, s.dtype);
+    return Ot().makeTensorFromDataId(s.dataId, s.shape, (s && s.dtype) || "float32");
   }
   _runWebGLProgram(t, e, s) {
     const o = ps().runWebGLProgram(t, e, s);
-    return Ot().makeTensorFromDataId(o.dataId, o.shape, o.dtype);
+    return (o && o.dataId) ? Ot().makeTensorFromDataId(o.dataId, o.shape, o.dtype || "float32") : null;
   }
 }
 class V4 {
@@ -55165,11 +55165,11 @@ class FY {
   }
   _compileAndRun(t, e) {
     const s = ps().compileAndRun(t, e);
-    return Ot().makeTensorFromDataId(s.dataId, s.shape, s.dtype);
+    return Ot().makeTensorFromDataId(s.dataId, s.shape, (s && s.dtype) || "float32");
   }
   _runWebGLProgram(t, e, s) {
     const o = ps().runWebGLProgram(t, e, s);
-    return Ot().makeTensorFromDataId(o.dataId, o.shape, o.dtype);
+    return Ot().makeTensorFromDataId(o.dataId, o.shape, (o && o.dtype) || "float32");
   }
 }
 const rd = { memory: wl, nextFrame: su }, VY = 1e-3, zY = 1e3, PY = 5, AY = 5;
