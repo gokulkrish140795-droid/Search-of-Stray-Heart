@@ -34,8 +34,8 @@ class SoundManager {
     }
   }
 
-  public playVoice(name: string, volume: number = 0.9) {
-    this.playSfx(name, volume);
+  public playVoice(_name: string, _volume: number = 0.9) {
+    // Voice lines removed per request (SFX and BGM only)
   }
 
   public playBgm(trackName: string, volume: number = 0.35) {

@@ -114,10 +114,34 @@ export interface ArTrackerCallbacks {
 
 /**
  * Starts MindAR Image Target Tracker on the provided video element.
+ *
+ * PERMANENT FIX — Four independent guard layers prevent any wrong-card or
+ * stale-session trigger. All four must pass before onTargetFound fires:
+ *
+ *   Layer 1 – sessionActive flag:
+ *     Set to false the instant stop() is called — BEFORE dispose() —
+ *     so any in-flight onUpdate frame during async teardown is dropped.
+ *
+ *   Layer 2 – interestedTargetIndex (MindAR internal filter):
+ *     Passed in constructor options AND set as a property post-construction
+ *     (belt-and-suspenders) so MindAR's detection loop only evaluates the
+ *     one target index we care about, never loading data for others.
+ *
+ *   Layer 3 – Hard targetIndex gate in onUpdate:
+ *     Even if Layer 2 lets something slip, we hard-reject any targetIndex
+ *     that doesn't match activeTargetIndex before calling any React callback.
+ *
+ *   Layer 4 – Live card ID getter from component:
+ *     The component passes () => currentCardIdRef.current so this function
+ *     always reads the real-time active card ID, never a stale closure value.
+ *     If the active card has already changed by the time onUpdate fires, the
+ *     frame is dropped.
  */
 export async function startMindArTracking(
   videoElement: HTMLVideoElement,
-  callbacks: ArTrackerCallbacks
+  callbacks: ArTrackerCallbacks,
+  targetCardId?: string,
+  getActiveCardId?: () => string
 ): Promise<{ stop: () => void; isTrackingTargets: boolean }> {
   const engine = getArEngineMode();
   if (engine.mode === 'stub') {
@@ -159,14 +183,44 @@ export async function startMindArTracking(
     let lastFoundTime = 0;
     let lastFoundIdx = -1;
 
+    const activeTargetIndex = targetCardId
+      ? AR_CARD_TARGETS.findIndex((t) => t.cardId === targetCardId)
+      : -1;
+
+    // GUARD LAYER 1: Session-active flag.
+    // Flipped to false the instant stop() is called so any in-flight frame
+    // that fires during async dispose() is silently dropped.
+    const sessionActive = { current: true };
+
     const controller = new mindarLib.Controller({
       inputWidth,
       inputHeight,
-      maxTrack: 2,
+      maxTrack: 1,
+      warmupTolerance: 2,
+      missTolerance: 3,
+      // GUARD LAYER 2a: interestedTargetIndex in constructor options.
+      // Tells MindAR's per-frame detection loop to only evaluate this target.
+      ...(activeTargetIndex !== -1 ? { interestedTargetIndex: activeTargetIndex } : {}),
       onUpdate: (data: any) => {
+        // LAYER 1: drop instantly if session has been stopped
+        if (!sessionActive.current) return;
+
         if (data.type === 'updateMatrix' && data.worldMatrix !== null) {
-          const now = Date.now();
           const targetIdx = data.targetIndex;
+
+          // LAYER 3: Hard engine-level index gate.
+          // Reject any detected target whose index is not the active card's index.
+          if (activeTargetIndex !== -1 && targetIdx !== activeTargetIndex) {
+            return;
+          }
+
+          // LAYER 4: Live card ID check via getter from component.
+          // Prevents stale-closure bugs where the callback sees an old card.id.
+          if (getActiveCardId && targetCardId && getActiveCardId() !== targetCardId) {
+            return;
+          }
+
+          const now = Date.now();
           if (now - lastFoundTime > 2000 || lastFoundIdx !== targetIdx) {
             lastFoundTime = now;
             lastFoundIdx = targetIdx;
@@ -178,6 +232,12 @@ export async function startMindArTracking(
         }
       },
     });
+
+    // GUARD LAYER 2b: Belt-and-suspenders property assignment after construction,
+    // in case this MindAR build does not propagate interestedTargetIndex from options.
+    if (activeTargetIndex !== -1) {
+      controller.interestedTargetIndex = activeTargetIndex;
+    }
 
     mindArInstance = controller;
 
@@ -198,6 +258,9 @@ export async function startMindArTracking(
     callbacks.onStatusChange?.('Target Lens Active');
 
     const stopFn = () => {
+      // LAYER 1: flip the active flag FIRST — before dispose() — so any
+      // in-flight frame firing during async teardown is dropped immediately.
+      sessionActive.current = false;
       try {
         if (controller) {
           controller.stopProcessVideo();

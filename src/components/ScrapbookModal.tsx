@@ -84,7 +84,7 @@ export const ScrapbookModal: React.FC<ScrapbookModalProps> = ({
               : 'text-slate-400 hover:text-slate-200 bg-white/5'
           }`}
         >
-          All (29)
+          All ({HUNT_CARDS.length})
         </button>
         {[1, 2, 3].map((ch) => {
           const cfg = CHAPTER_CONFIG[ch as 1 | 2 | 3];
@@ -258,7 +258,7 @@ export const ScrapbookModal: React.FC<ScrapbookModalProps> = ({
       {/* Footer Info */}
       <footer className="p-3 bg-[#0B1220]/90 border-t border-[#E8C56A]/20 text-center">
         <p className="text-[11px] font-serif text-slate-400">
-          ✨ Collect all 29 cards to illuminate every chapter of your stray heart quest.
+          ✨ Collect all {HUNT_CARDS.length} cards to illuminate every chapter of your stray heart quest.
         </p>
       </footer>
     </div>

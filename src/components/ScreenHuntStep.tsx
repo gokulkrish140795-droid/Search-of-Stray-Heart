@@ -59,6 +59,10 @@ export const ScreenHuntStep: React.FC<ScreenHuntStepProps> = ({
   const streamRef = useRef<MediaStream | null>(null);
   const mindArSessionRef = useRef<{ stop: () => void } | null>(null);
   const isTriggeredRef = useRef(false);
+  // PERMANENT FIX (Layer 4): always holds the live card.id so the AR engine
+  // getter never reads a stale closure value across card transitions.
+  const currentCardIdRef = useRef(card.id);
+  currentCardIdRef.current = card.id;
 
   const chapterConfig = CHAPTER_CONFIG[card.chapter];
 
@@ -117,21 +121,18 @@ export const ScreenHuntStep: React.FC<ScreenHuntStepProps> = ({
       if (isTriggeredRef.current) return;
       isTriggeredRef.current = true;
 
+      // Stop camera and tracking immediately so no further frames are evaluated
+      stopCameraAndTracking();
+
       if (reasonLabel) {
         console.info(`[AR Viewfinder] Card ${card.id} unlocked via ${reasonLabel}`);
       }
 
       sound.playSfx('sfx_wand_swish');
       sound.playSfx('sfx_revelio_bell');
-      sound.playVoice('voice_tap_yay');
       setShowFoundCelebration(true);
-
-      setTimeout(() => {
-        setShowFoundCelebration(false);
-        onCardFound(card);
-      }, 2300);
     },
-    [card, onCardFound]
+    [card]
   );
 
   // MindAR Target Detection Handler - ONLY triggers on real matching image targets
@@ -200,13 +201,19 @@ export const ScreenHuntStep: React.FC<ScreenHuntStepProps> = ({
           video.height = video.videoHeight;
         }
 
-        // Initialize genuine MindAR target image tracking
+        // Initialize genuine MindAR target image tracking for the active card
         try {
-          const session = await startMindArTracking(video, {
-            onTargetFound: handleMindTargetFound,
-            onStatusChange: (status) => setStatusMessage(status),
-            onError: (err) => console.warn('[AR] Tracking notice:', err),
-          });
+          const session = await startMindArTracking(
+            video,
+            {
+              onTargetFound: handleMindTargetFound,
+              onStatusChange: (status) => setStatusMessage(status),
+              onError: (err) => console.warn('[AR] Tracking notice:', err),
+            },
+            card.id,
+            // PERMANENT FIX (Layer 4): live getter so the engine never reads stale card.id
+            () => currentCardIdRef.current
+          );
           mindArSessionRef.current = session;
         } catch (arErr) {
           console.warn('[AR] MindAR session initialization notice:', arErr);
@@ -582,19 +589,30 @@ export const ScreenHuntStep: React.FC<ScreenHuntStepProps> = ({
 
       {/* 9. Found Celebration Overlay (Appears ONLY after real target detection) */}
       {showFoundCelebration && (
-        <div className="fixed inset-0 z-50 bg-[#060B14]/90 backdrop-blur-lg flex flex-col items-center justify-center p-6 text-center animate-fadeIn pointer-events-auto">
+        <div className="fixed inset-0 z-50 bg-[#060B14]/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center animate-fadeIn pointer-events-auto">
           <div className="w-16 h-16 rounded-full bg-[#E8C56A]/20 border-2 border-[#E8C56A] flex items-center justify-center text-[#FFE7A8] text-2xl font-bold mb-3 animate-bounce shadow-[0_0_20px_#E8C56A]">
             <CheckCircle2 size={36} className="text-[#FFE7A8]" />
           </div>
-          <h3 className="text-lg font-serif font-bold text-[#FFE7A8] mb-1">
-            Card #{card.id} Identified!
+          <h3 className="text-xl font-serif font-bold text-[#FFE7A8] mb-1">
+            Card #{card.id} Identified! ✨
           </h3>
           <p className="text-base font-mono text-[#E8C56A] font-bold tracking-widest mb-3">
             Tokens Collected: {card.letters}
           </p>
-          <div className="p-3 max-w-xs rounded-xl bg-black/60 border border-[#E8C56A]/30 text-xs font-serif italic text-slate-200">
+          <div className="p-4 max-w-xs rounded-2xl bg-black/60 border border-[#E8C56A]/30 text-xs font-serif italic text-slate-200 mb-6 leading-relaxed">
             "{card.quote}"
           </div>
+
+          <button
+            onClick={() => {
+              setShowFoundCelebration(false);
+              onCardFound(card);
+            }}
+            className="w-full max-w-xs py-3.5 px-6 rounded-2xl bg-gradient-to-r from-[#E8C56A] via-[#FFE7A8] to-[#E8C56A] text-[#060B14] font-serif text-sm font-bold uppercase tracking-wider shadow-lg shadow-[#E8C56A]/30 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all"
+          >
+            <span>Proceed to Next Clue</span>
+            <ChevronRight size={18} />
+          </button>
         </div>
       )}
     </div>
