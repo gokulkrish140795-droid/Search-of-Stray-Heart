@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Sparkles, Heart, BookOpen, RotateCcw } from 'lucide-react';
 import { FINALE_PROTOCOL } from '../data/huntData';
 import { sound } from '../utils/sound';
+import { CelebrationSparkles } from './CelebrationSparkles';
 
 interface ScreenFinaleProps {
   onRestart: () => void;
@@ -46,6 +47,7 @@ export const ScreenFinale: React.FC<ScreenFinaleProps> = ({ onRestart, onOpenScr
 
   return (
     <div className="flex-1 flex flex-col justify-between py-2 relative">
+      {isUnlocked && <CelebrationSparkles durationMs={5000} />}
       {/* Stage 0 / 1: Final Protocol Entry */}
       {fadeStage < 2 ? (
         <div className="flex-1 flex flex-col items-center justify-center text-center p-4">

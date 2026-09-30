@@ -21,6 +21,7 @@ import {
   startMindArTracking,
   MindTargetInfo,
 } from '../utils/arEngine';
+import { CelebrationSparkles } from './CelebrationSparkles';
 
 interface ScreenHuntStepProps {
   card: CardItem;
@@ -590,6 +591,7 @@ export const ScreenHuntStep: React.FC<ScreenHuntStepProps> = ({
       {/* 9. Found Celebration Overlay (Appears ONLY after real target detection) */}
       {showFoundCelebration && (
         <div className="fixed inset-0 z-50 bg-[#060B14]/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center animate-fadeIn pointer-events-auto">
+          <CelebrationSparkles />
           <div className="w-16 h-16 rounded-full bg-[#E8C56A]/20 border-2 border-[#E8C56A] flex items-center justify-center text-[#FFE7A8] text-2xl font-bold mb-3 animate-bounce shadow-[0_0_20px_#E8C56A]">
             <CheckCircle2 size={36} className="text-[#FFE7A8]" />
           </div>

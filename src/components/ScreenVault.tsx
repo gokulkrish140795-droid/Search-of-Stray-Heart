@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Lock, Unlock, Sparkles, HelpCircle, ArrowLeft, RefreshCw, KeyRound, AlertTriangle } from 'lucide-react';
 import { VaultItem, CHAPTER_CONFIG } from '../data/huntData';
 import { sound } from '../utils/sound';
+import { CelebrationSparkles } from './CelebrationSparkles';
 
 interface ScreenVaultProps {
   vault: VaultItem;
@@ -261,6 +262,7 @@ export const ScreenVault: React.FC<ScreenVaultProps> = ({
       {/* Success Modal */}
       {isUnlocked && (
         <div className="fixed inset-0 z-50 bg-[#060B14]/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center animate-fadeIn pointer-events-auto">
+          <CelebrationSparkles />
           <div className="w-20 h-20 rounded-full bg-[#E8C56A]/20 border-2 border-[#E8C56A] flex items-center justify-center text-[#FFE7A8] text-3xl font-bold mb-4 animate-bounce shadow-[0_0_30px_#E8C56A]">
             <Unlock size={38} className="text-[#FFE7A8]" />
           </div>
