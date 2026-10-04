@@ -541,4 +541,20 @@ export const FINALE_PROTOCOL = {
   meaning: '5th October (Birthday Protocol)',
   finalCaption: 'Look up.',
   gokulGiftNote: 'Gokul is the gift.',
+  cloudGameUrl: 'https://protocol0510.vercel.app/',
+  cloudBridgeTitle: 'A Journey to the Clouds',
+  pureSoulsMessage: [
+    'Wait, Aishu...',
+    'The stray heart has found its home, but the universe has one more secret to reveal.',
+    'Beyond this room, high among the quiet clouds, pure souls who watch over you always have gathered to meet you. Alongside your dearest friends and family, they wanted to see you and celebrate your 30th birthday together.',
+    'Take a journey to the clouds...',
+    'To cross the threshold, the Gatekeeper of the skies will ask you for a secret code. Solve this riddle to discover the key:',
+  ],
+  pureSoulsRiddle: [
+    'Five sparks of dawn to welcome your grace,',
+    'The tenth turning moon that completed the space.',
+    'The day thirty years ago when heaven gave you to earth—',
+    'Speak the day and the month of your birth.',
+  ],
+  pureSoulsPrompt: 'Hold your answer close in your mind, and step through the mist.',
 };
